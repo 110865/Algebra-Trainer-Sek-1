@@ -1,71 +1,180 @@
 <!doctype html>
-<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Algebra-Trainer Klasse 7–10 · Moodle</title>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SEK 1 Trainer 1</title>
 <style>
-:root{--bg:#f5f6f8;--card:#fff;--text:#17202a;--muted:#667085;--accent:#3157d5;--line:#d8dde7;}
-*{box-sizing:border-box}body{margin:0;font:17px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}main{max-width:900px;margin:auto;padding:22px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin:14px 0}h1{margin:.2em 0}.muted{color:var(--muted)}button,input{font:inherit}button{border:1px solid var(--line);border-radius:11px;padding:11px 15px;background:#fff;cursor:pointer}button.primary{background:var(--accent);color:white;border-color:var(--accent)}input{width:100%;padding:14px;border:1px solid var(--line);border-radius:11px;font-size:20px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.ex{background:#f2f4f7;padding:10px;border-radius:10px}.hidden{display:none}#bar{height:8px;background:#e7eaf0;border-radius:99px;overflow:hidden}#bar span{display:block;height:100%;background:var(--accent)}#keys{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:12px}#keys button{padding:12px 4px}.feedback{margin-top:14px;padding:15px;border-radius:12px;background:#f7f8fa}.results{display:grid;gap:10px}.result{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:10px 0}.dot{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:7px}@media(max-width:600px){main{padding:12px}#keys{grid-template-columns:repeat(5,1fr)}}
-</style></head><body><main>
-<section id="start"><div class="card"><div class="muted">Klasse 7–10 · 9 Bereiche · 45 Aufgaben</div><h1>Algebra-Trainer</h1><p class="muted">Moodle-Version · eigenständige HTML-Datei</p><p>Jeder Bereich beginnt mit einer Routineaufgabe. Danach folgen Verständnis, typische Fehlvorstellungen, Transfer und Vertiefung.</p></div>
-<div class="card"><h2>So gibst du deine Antworten ein</h2><p>Damit kein Eingabefehler als Mathematikfehler zählt, akzeptiert der Trainer übliche gleichwertige Schreibweisen.</p>
-<div class="grid"><div class="ex"><b>Eine Lösung</b><br>5 oder x=5</div><div class="ex"><b>Mehrere Lösungen</b><br>-1;5 oder x=-1;x=5</div><div class="ex"><b>Potenzen</b><br>x² oder x^2</div><div class="ex"><b>Brüche</b><br>3/4</div><div class="ex"><b>Dezimalzahlen</b><br>2,5 oder 2.5</div><div class="ex"><b>Terme</b><br>2(x+3) oder 2*(x+3)</div></div>
-<p><b>Wichtig:</b> Mehrere Lösungen mit <b>;</b> trennen. Die Reihenfolge ist egal. Kann eine Eingabe nicht eindeutig gelesen werden, wird sie nicht als fachlicher Fehler gezählt.</p>
-<button class="primary" onclick="begin(false)">Training starten</button> <button onclick="begin(true)">⏱ Auf Zeit</button></div></section>
-<section id="quiz" class="hidden"><div class="card"><div id="meta" class="muted"></div><div id="bar"><span></span></div><h2 id="question"></h2><input id="answer" placeholder="Antwort eingeben" autocomplete="off"><div id="keys"></div><button id="check" class="primary" onclick="check()">Prüfen</button><div id="feedback" class="feedback hidden"></div><button id="next" class="hidden" onclick="next()">Nächste Aufgabe →</button></div></section>
-<section id="end" class="hidden"><div class="card"><h1>Dein Lernstand</h1><p class="muted">Grün &gt;80 % · Gelb &gt;50 % bis 80 % · Rot ≤50 %</p><div id="results" class="results"></div><p id="timing"></p><button class="primary" onclick="location.reload()">Neu starten</button></div></section>
-</main><script>
-const tasks=[["Bruchrechnen", "Routine", "Berechne und kürze vollständig: 3/4 + 1/4", "1", "Die Nenner sind gleich. Addiere die Zähler und kürze: 4/4 = 1.", "2/5 + 3/5 = 1."], ["Bruchrechnen", "Verständnis", "Berechne und kürze: 1/2 + 1/3", "5/6", "Bei verschiedenen Nennern brauchst du zuerst einen gemeinsamen Nenner: 3/6 + 2/6 = 5/6.", "1/2 + 1/4 = 3/4."], ["Bruchrechnen", "Fehlvorstellung", "Berechne und kürze: 3/4 − 1/6", "7/12", "Zähler und Nenner dürfen nicht getrennt subtrahiert werden. Gemeinsamer Nenner 12: 9/12 − 2/12 = 7/12.", "2/3 − 1/4 = 5/12."], ["Bruchrechnen", "Transfer", "Berechne und kürze: 2/3 · 9/10", "3/5", "Beim Multiplizieren werden Zähler mit Zähler und Nenner mit Nenner multipliziert; anschließend wird gekürzt.", "3/4 · 2/9 = 1/6."], ["Bruchrechnen", "Vertiefung", "Berechne und kürze: 3/5 : 9/10", "2/3", "Beim Dividieren durch einen Bruch multiplizierst du mit seinem Kehrwert: 3/5 · 10/9 = 2/3.", "2/3 : 4/5 = 5/6."], ["Variablenverständnis", "Routine", "Setze x = 4 ein: 3x + 2", "14", "Jedes x wird durch 4 ersetzt: 3·4+2=14.", "Für y=3 gilt 2y+1=7."], ["Variablenverständnis", "Verständnis", "x + x = 18. Bestimme x.", "9", "Derselbe Buchstabe steht innerhalb eines Ausdrucks für denselben Wert. Also 2x=18 und x=9.", "y+y=12 → y=6."], ["Variablenverständnis", "Fehlvorstellung", "Dürfen x und y in x + y = 10 beide den Wert 5 haben? Antworte ja oder nein.", "ja", "Verschiedene Buchstaben dürfen denselben Zahlenwert besitzen. x=5 und y=5 erfüllt die Gleichung.", "a=3 und b=3 erfüllt a+b=6."], ["Variablenverständnis", "Transfer", "Für a=3 und b=3: Berechne 2a+b.", "9", "Setze beide Werte konsequent ein: 2·3+3=9.", "a=2,b=2 → 3a+b=8."], ["Variablenverständnis", "Vertiefung", "x+x+x=21. Bestimme x.", "7", "Alle drei x haben denselben Wert: 3x=21, also x=7.", "z+z+z=15 → z=5."], ["Terme interpretieren", "Routine", "Schreibe als Term: 4 mehr als x.", "x+4", "Zu x werden 4 addiert.", "3 mehr als y → y+3."], ["Terme interpretieren", "Verständnis", "Schreibe als Term: 5 weniger als x.", "x-5", "Von x werden 5 abgezogen. 5−x würde die Reihenfolge umkehren.", "2 weniger als y → y−2."], ["Terme interpretieren", "Fehlvorstellung", "Schreibe 6x mit Multiplikationszeichen.", "6*x", "6x bedeutet 6·x. Die 6 ist ein Faktor, kein Exponent.", "4y = 4·y."], ["Terme interpretieren", "Transfer", "Das Doppelte der Summe aus x und 3. Gib den Term an.", "2*(x+3)", "Die gesamte Summe wird verdoppelt, deshalb ist die Klammer notwendig.", "Das Dreifache der Summe aus y und 2 → 3(y+2)."], ["Terme interpretieren", "Vertiefung", "7 weniger als das Dreifache von x. Gib den Term an.", "3*x-7", "Das Dreifache ist 3x; davon werden 7 abgezogen.", "4 weniger als das Doppelte von y → 2y−4."], ["Terme aufstellen", "Routine", "Eine Zahl x wird verdoppelt und um 5 erhöht. Term?", "2*x+5", "Das Doppelte ist 2x, anschließend kommen 5 hinzu.", "x verdreifachen und 2 addieren → 3x+2."], ["Terme aufstellen", "Verständnis", "Ein Heft kostet x €. Drei Hefte und ein Stift für 2 €: Gesamtpreis als Term?", "3*x+2", "Drei Hefte kosten 3x Euro; anschließend kommen 2 Euro hinzu.", "Zwei Hefte zu x € plus 4 € → 2x+4."], ["Terme aufstellen", "Fehlvorstellung", "x wird zuerst um 4 erhöht, das Ergebnis dann verdreifacht. Term?", "3*(x+4)", "Die Reihenfolge verlangt eine Klammer: zuerst x+4, dann alles mal 3.", "Erst x+2, dann verdoppeln → 2(x+2)."], ["Terme aufstellen", "Transfer", "Von 20 wird das Doppelte von x abgezogen. Term?", "20-2*x", "20 ist der Ausgangswert; 2x wird davon abgezogen.", "Von 15 wird 3x abgezogen → 15−3x."], ["Terme aufstellen", "Vertiefung", "Das Fünffache der Differenz aus 8 und x. Term?", "5*(8-x)", "Die gesamte Differenz 8−x wird verfünffacht.", "Das Doppelte der Differenz aus 7 und y → 2(7−y)."], ["Flächeninhalte", "Routine", "Rechteck mit Seiten x und 5: Flächeninhalt als Term?", "5*x", "Flächeninhalt = Länge · Breite, also 5x.", "Seiten y und 4 → A=4y."], ["Flächeninhalte", "Verständnis", "Rechteck mit Seiten x+2 und 4: Flächeninhalt?", "4*(x+2)", "Die gesamte Seite x+2 wird mit 4 multipliziert.", "Seiten y+3 und 2 → 2(y+3)."], ["Flächeninhalte", "Fehlvorstellung", "Quadrat mit Seitenlänge x+3: Flächeninhalt?", "(x+3)^2", "Gesucht ist die Fläche, nicht der Umfang: (x+3)·(x+3).", "Quadratseite y+2 → A=(y+2)^2."], ["Flächeninhalte", "Transfer", "Rechteck: Länge 2x+1, Breite x. Flächeninhalt ausmultipliziert?", "2*x^2+x", "x(2x+1)=2x²+x.", "x(x+4)=x²+4x."], ["Flächeninhalte", "Vertiefung", "Rechteck: Seiten x+2 und x+4. Flächeninhalt ausmultipliziert?", "x^2+6*x+8", "Vier Teilprodukte entstehen und gleichartige Terme werden zusammengefasst.", "(x+1)(x+3)=x²+4x+3."], ["Ausmultiplizieren", "Routine", "Multipliziere aus: 3(x+4).", "3*x+12", "Die 3 wird mit beiden Summanden multipliziert.", "2(x+5)=2x+10."], ["Ausmultiplizieren", "Verständnis", "Multipliziere aus: x(x+5).", "x^2+5*x", "x·x=x² und x·5=5x.", "x(x+3)=x²+3x."], ["Ausmultiplizieren", "Fehlvorstellung", "Multipliziere aus: (x+2)(x+3).", "x^2+5*x+6", "Es entstehen vier Produkte. Die mittleren Terme dürfen nicht weggelassen werden.", "(x+1)(x+4)=x²+5x+4."], ["Ausmultiplizieren", "Transfer", "Multipliziere aus und fasse zusammen: (x+4)(x−2).", "x^2+2*x-8", "x²−2x+4x−8=x²+2x−8.", "(x+3)(x−1)=x²+2x−3."], ["Ausmultiplizieren", "Vertiefung", "Multipliziere aus: (2x+3)(x+4).", "2*x^2+11*x+12", "Bilde alle vier Produkte und fasse anschließend gleichartige Terme zusammen.", "(2x+1)(x+2)=2x²+5x+2."], ["Termumformungen", "Routine", "Fasse zusammen: 3x+5x.", "8*x", "Gleichartige Terme werden über ihre Koeffizienten zusammengefasst.", "2y+6y=8y."], ["Termumformungen", "Verständnis", "Fasse zusammen: 4x+3+2x−1.", "6*x+2", "x-Terme und Zahlenterme werden jeweils zusammengefasst.", "3x+5+x−2=4x+3."], ["Termumformungen", "Fehlvorstellung", "Vereinfache: 3x+2x².", "2*x^2+3*x", "x und x² sind nicht gleichartig und dürfen nicht zu einem Term verschmolzen werden.", "4y+3y² bleibt 4y+3y²."], ["Termumformungen", "Transfer", "Vereinfache: 2(x+3)+4x.", "6*x+6", "Erst ausmultiplizieren, dann gleichartige Terme zusammenfassen.", "3(x+2)+2x=5x+6."], ["Termumformungen", "Vertiefung", "Vereinfache: 3(x−2)−2(x+1).", "x-8", "Das Minus vor der zweiten Klammer betrifft beide Summanden.", "2(x−1)−(x+3)=x−5."], ["Lineare Gleichungen", "Routine", "Löse: x+7=12.", "5", "Auf beiden Seiten 7 subtrahieren.", "x+4=10 → x=6."], ["Lineare Gleichungen", "Verständnis", "Löse: 3x=18.", "6", "Beide Seiten durch 3 teilen.", "4x=20 → x=5."], ["Lineare Gleichungen", "Fehlvorstellung", "Löse: 3(x+2)=15.", "3", "Die 3 multipliziert die gesamte Klammer. Teile zuerst durch 3: x+2=5.", "2(x+4)=14 → x=3."], ["Lineare Gleichungen", "Transfer", "Löse: 4x+3=2x+11.", "4", "Bringe die x-Terme auf eine Seite: 2x+3=11, also x=4.", "5x+2=3x+10 → x=4."], ["Lineare Gleichungen", "Vertiefung", "Löse: x/3+2=6.", "12", "Erst 2 subtrahieren, danach mit 3 multiplizieren.", "x/4+1=3 → x=8."], ["Quadratische Gleichungen", "Routine", "Löse x²=25. Gib beide Lösungen mit ; getrennt an.", "-5;5", "Beim Wurzelziehen müssen beide Vorzeichen berücksichtigt werden: x=±5.", "x²=16 → -4;4."], ["Quadratische Gleichungen", "Verständnis", "Löse x²−9=0. Beide Lösungen mit ; trennen.", "-3;3", "x²=9 führt zu x=±3.", "x²−4=0 → -2;2."], ["Quadratische Gleichungen", "Fehlvorstellung", "Löse x(x−4)=0. Beide Lösungen mit ; trennen.", "0;4", "Nullproduktregel: Ein Produkt ist null, wenn mindestens ein Faktor null ist.", "x(x+3)=0 → -3;0."], ["Quadratische Gleichungen", "Transfer", "Löse x²+5x+6=0. Beide Lösungen mit ; trennen.", "-3;-2", "Faktorisiere: (x+2)(x+3)=0.", "x²+3x+2=0 → -2;-1."], ["Quadratische Gleichungen", "Vertiefung", "Löse (x−2)²=9. Beide Lösungen mit ; trennen.", "-1;5", "Aus (x−2)²=9 folgt x−2=±3, also x=−1 oder x=5.", "(x−3)²=4 → 1;5."]]; let i=0,score={},timed=false,t0=0,times=[];
-const ans=document.getElementById('answer');
-function norm(s){
- return s.toLowerCase().trim().replace(/\s/g,'').replace(/−/g,'-').replace(/×|·/g,'*')
- .replace(/²/g,'^2').replace(/,/g,'.').replace(/[{}]/g,'').replace(/[xyz]=/g,'')
- .replace(/([0-9xyz)])\(/g,'$1*(').replace(/(\d)([xyz])/g,'$1*$2').replace(/\)([xyz])/g,')*$1');
-}
-function canon(s){let n=norm(s);if(n.includes(';'))return n.split(';').filter(Boolean).sort().join(';');return n;}
-function numericValue(s, vals={}){
- let n=norm(s);
- if(!/^[0-9xyz+\-*/().^]+$/.test(n)) return NaN;
- n=n.replace(/\^/g,'**');
- try{
-   const fn=Function('x','y','z','"use strict";return ('+n+')');
-   const v=fn(vals.x??0,vals.y??0,vals.z??0);
-   return (typeof v==='number'&&Number.isFinite(v))?v:NaN;
- }catch(e){return NaN}
-}
-function oneEq(a,b){
- let A=norm(a),B=norm(b);
- if(A===B || A.replace(/\*/g,'')===B.replace(/\*/g,'')) return true;
- // Zahlen: auch gekürzte/ungekürzte Brüche und Dezimalschreibweisen
- if(!/[xyz]/.test(A+B)){
-   let va=numericValue(A),vb=numericValue(B);
-   return Number.isFinite(va)&&Number.isFinite(vb)&&Math.abs(va-vb)<1e-9;
+:root{--bg:#f5f7fb;--card:#fff;--ink:#18202b;--muted:#647184;--line:#dfe5ec;--accent:#315b96;--support:#fff8df}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:900px;margin:auto;padding:24px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;margin:16px 0;box-shadow:0 2px 10px #0000000b}
+h1{font-size:2rem;margin:.2em 0}h2{margin:.2em 0 .7em}.muted{color:var(--muted)}button,input{font:inherit}button{border:0;border-radius:10px;padding:12px 16px;cursor:pointer;background:#e9eef5;color:#18202b;margin:5px 6px 5px 0}button.primary{background:var(--accent);color:white}button.choice{display:block;width:100%;text-align:left;border:1px solid var(--line);background:white}
+input{width:100%;max-width:520px;padding:12px;border:1px solid #b9c4d1;border-radius:9px;margin:8px 0}.tag{display:inline-block;padding:4px 9px;border-radius:99px;background:#eef2f7;font-size:.85rem;margin-right:5px}
+.support{background:var(--support)}.math{font-family:"Cambria Math","STIX Two Math",serif;font-size:1.15em}.frac{display:inline-grid;grid-template-rows:auto auto;vertical-align:middle;text-align:center;line-height:1.05;margin:0 .15em}.frac span:first-child{border-bottom:1.5px solid;padding:0 .18em .08em}.frac span:last-child{padding:.08em .18em 0}
+.row{display:flex;gap:10px;flex-wrap:wrap}.box{border:2px solid #9caabc;padding:12px;border-radius:10px;min-width:130px;text-align:center;background:white}.selected{outline:3px solid #315b96}.hidden{display:none}.bar{height:7px;background:#e5eaf0;border-radius:8px;overflow:hidden}.bar>i{display:block;height:100%;background:#617b9e}.feedback{padding:12px;border-radius:10px;background:#f1f4f8;margin-top:12px}.solution{border-left:4px solid #65758b;padding:10px 14px;margin:10px 0;background:#fff}.tiny{font-size:.82rem}.profile td,.profile th{padding:9px;border-bottom:1px solid var(--line);text-align:left}.profile{border-collapse:collapse;width:100%}
+.flow{display:flex;align-items:stretch;justify-content:center;gap:8px;flex-wrap:wrap;margin:22px 0}.flowStep{border:1px solid var(--line);border-radius:12px;background:white;padding:12px 10px;min-width:135px;flex:1;display:flex;flex-direction:column;gap:4px;text-align:center}.flowStep b{display:inline-grid;place-items:center;width:28px;height:28px;margin:auto;border-radius:50%;background:#e8eef7;color:#315b96}.flowStep span{font-weight:700}.flowStep small{color:var(--muted);line-height:1.3}.arrow{display:grid;place-items:center;font-size:1.5rem;color:#718096}@media(max-width:700px){.arrow{display:none}.flowStep{min-width:46%}}
+@media(max-width:600px){main{padding:12px}.card{padding:18px}button{min-height:48px}}
+</style></head>
+<body><main id="app"></main>
+<script>
+const topics=[
+{id:"var",name:"Variablenverständnis",qs:[
+{type:"mc",routine:false,q:'Was bedeutet <span class="math">3x</span>?',opts:["3 + x","3 · x","x · x · x","Die Zahl 3 heißt x"],ans:1,err:["addition","ok","exponent","label"]},
+{type:"mc",routine:false,q:'Für <span class="math">x = 4</span> gilt <span class="math">2x + 3 = ?</span>',opts:["9","11","24","2 · 4 · 3"],ans:1},
+{type:"match",routine:false,q:"Ordne die Aussage dem passenden Term zu.",prompt:"Das Doppelte einer Zahl, um 5 vermehrt",opts:["2x + 5","2(x + 5)","x + 7","5x + 2"],ans:0},
+{type:"mc",routine:false,q:'Können <span class="math">a</span> und <span class="math">b</span> denselben Zahlenwert haben?',opts:["Nein, verschiedene Buchstaben müssen verschiedene Werte haben.","Ja, Variablen können denselben Wert annehmen.","Nur wenn a = 0.","Nur in Gleichungen."],ans:1},
+{type:"input",routine:true,q:'Berechne für <span class="math">x = 5</span>: <span class="math">4x − 7</span>.',answers:["13"]},
+{type:"input",routine:true,q:'Berechne für <span class="math">a = −2</span>: <span class="math">3a + 8</span>.',answers:["2"]}
+]},
+{id:"text",name:"Terme aufstellen & interpretieren",qs:[
+{type:"match",q:"Welcher Term passt?",prompt:"Von einer Zahl werden 7 abgezogen.",opts:["7 − x","x − 7","7x","x + 7"],ans:1},
+{type:"match",q:"Welcher Term passt?",prompt:"Die Hälfte der Summe aus x und 6.",opts:["x/2 + 6","(x + 6)/2","x + 3","2(x + 6)"],ans:1},
+{type:"mc",q:'Was beschreibt <span class="math">5 + 3x</span>?',opts:["Das Dreifache der Summe aus 5 und x.","5 vermehrt um das Dreifache von x.","Das Fünffache von 3 + x.","3 vermehrt um das Fünffache von x."],ans:1},
+{type:"mc",q:'Ein Rechteck hat Seitenlängen <span class="math">x</span> und <span class="math">x + 3</span>. Welcher Term beschreibt den Umfang?',opts:["x(x + 3)","2x + 3","4x + 6","2x(x + 3)"],ans:2},
+{type:"input",routine:true,q:"Stelle einen Term auf: Das Vierfache einer Zahl x, vermindert um 9.",answers:["4x-9","4*x-9"]},
+{type:"input",routine:true,q:"Stelle einen Term auf: 8 mehr als das Doppelte von x.",answers:["2x+8","8+2x","2*x+8","8+2*x"]}
+]},
+{id:"simp",name:"Termumformungen",qs:[
+{type:"mc",q:'Welche Terme sind gleichwertig zu <span class="math">3x + 5x</span>?',opts:["8x","8x²","15x","8 + x"],ans:0},
+{type:"mc",q:'Warum kann man <span class="math">2x + 3</span> nicht zu <span class="math">5x</span> zusammenfassen?',opts:["Weil x nie 1 sein darf.","Weil nur gleichartige Terme zusammengefasst werden können.","Weil Addition bei Variablen verboten ist.","Weil 2 + 3 nicht 5 ist."],ans:1},
+{type:"mc",q:'Vereinfache <span class="math">4a − 2a + 7</span>.',opts:["2a + 7","2a + 5","9a","2a"],ans:0},
+{type:"mc",q:'Welche Umformung ist korrekt?',opts:["x + x = x²","x · x = 2x","x + x = 2x","2x + 3 = 5x"],ans:2},
+{type:"input",routine:true,q:'Vereinfache: <span class="math">7x + 2x − 4</span>.',answers:["9x-4","-4+9x"]},
+{type:"input",routine:true,q:'Vereinfache: <span class="math">5a + 3 − 2a + 4</span>.',answers:["3a+7","7+3a"]}
+]},
+{id:"dist",name:"Ausmultiplizieren & Ausklammern",qs:[
+{type:"mc",q:'Welche Umformung von <span class="math">3(x + 4)</span> ist richtig?',opts:["3x + 4","3x + 12","3x + 7","x + 12"],ans:1,err:["partial","ok","mix","partial"]},
+{type:"area",q:"Flächenmodell: Welche Summe beschreibt die Gesamtfläche?",labels:["x","4"],height:"3",opts:["3x + 4","3x + 12","x + 12","12x"],ans:1},
+{type:"mc",q:'Klammere vollständig aus: <span class="math">6x + 12</span>.',opts:["6(x + 2)","6(x + 12)","3(x + 4)","2(3x + 12)"],ans:0},
+{type:"order",q:'Welche Reihenfolge beschreibt <span class="math">−2(x − 5)</span> korrekt?',opts:["−2 · x und −2 · (−5) → −2x + 10","−2 · x und −5 → −2x − 5","−2x − 10","−2 + x − 5"],ans:0},
+{type:"input",routine:true,q:'Multipliziere aus: <span class="math">4(2x + 3)</span>.',answers:["8x+12","12+8x"]},
+{type:"input",routine:true,q:'Klammere vollständig aus: <span class="math">10x + 15</span>.',answers:["5(2x+3)","5*(2x+3)"]}
+]},
+{id:"frac",name:"Bruchrechnen",qs:[
+{type:"mc",q:'Welche Zahl ist gleich <span class="frac"><span>3</span><span>4</span></span>?',opts:['<span class="frac"><span>6</span><span>8</span></span>','<span class="frac"><span>4</span><span>5</span></span>','<span class="frac"><span>3</span><span>8</span></span>','<span class="frac"><span>9</span><span>16</span></span>'],ans:0},
+{type:"mc",q:'Berechne <span class="frac"><span>1</span><span>3</span></span> + <span class="frac"><span>1</span><span>6</span></span>.',opts:['<span class="frac"><span>2</span><span>9</span></span>','<span class="frac"><span>1</span><span>2</span></span>','<span class="frac"><span>2</span><span>6</span></span>','<span class="frac"><span>1</span><span>9</span></span>'],ans:1},
+{type:"mc",q:'Was bedeutet das Multiplizieren mit <span class="frac"><span>1</span><span>2</span></span>?',opts:["Die Zahl verdoppeln.","Die Hälfte der Zahl bestimmen.","1 und 2 addieren.","Immer 2 abziehen."],ans:1},
+{type:"mc",q:'Welche Rechnung ist korrekt?',opts:['<span class="frac"><span>2</span><span>3</span></span> · <span class="frac"><span>3</span><span>5</span></span> = <span class="frac"><span>6</span><span>15</span></span>','<span class="frac"><span>2</span><span>3</span></span> + <span class="frac"><span>1</span><span>4</span></span> = <span class="frac"><span>3</span><span>7</span></span>','<span class="frac"><span>1</span><span>2</span></span> : <span class="frac"><span>1</span><span>4</span></span> = <span class="frac"><span>1</span><span>8</span></span>','<span class="frac"><span>3</span><span>4</span></span> − <span class="frac"><span>1</span><span>2</span></span> = <span class="frac"><span>2</span><span>2</span></span>'],ans:0},
+{type:"input",routine:true,q:'Berechne und kürze: <span class="frac"><span>2</span><span>5</span></span> + <span class="frac"><span>1</span><span>5</span></span>.',answers:["3/5","0.6","0,6"]},
+{type:"input",routine:true,q:'Berechne und kürze: <span class="frac"><span>3</span><span>4</span></span> · <span class="frac"><span>2</span><span>3</span></span>.',answers:["1/2","0.5","0,5","2/4","6/12"]}
+]}];
+
+let state={ti:0,qi:0,phase:"diagnosis",weak:{},log:[],supportQueue:[],supportIndex:0,recheck:[],reIndex:0,cycle:1,aid:{},version:"1.2 · 30.09.2026"};
+const app=document.getElementById("app");
+function norm(s){return (s||"").toLowerCase().replace(/\s+/g,"").replace(/,/g,".").replace(/·/g,"*").replace(/[−–]/g,"-").replace(/^([xyzab])=/,"").replace(/\*/g,"")}
+function numericValue(s){
+ let z=norm(s);
+ if(/^[-+]?\d+(\.\d+)?\/[-+]?\d+(\.\d+)?$/.test(z)){
+   let [a,b]=z.split("/").map(Number); if(b!==0)return a/b;
  }
- // Terme: Gleichwertigkeit an mehreren Testwerten prüfen
- const tests=[{x:2,y:3,z:5},{x:-2,y:4,z:1},{x:.5,y:-3,z:2},{x:7,y:2,z:-1}];
- let seen=false;
- for(const t of tests){
-   let va=numericValue(A,t),vb=numericValue(B,t);
-   if(!Number.isFinite(va)||!Number.isFinite(vb)) continue;
-   seen=true;
-   if(Math.abs(va-vb)>1e-8*(1+Math.abs(va)+Math.abs(vb))) return false;
- }
- return seen;
+ if(/^[-+]?\d+(\.\d+)?$/.test(z)) return Number(z);
+ return null;
 }
-function eq(a,b){
- let A=norm(a),B=norm(b);
- if(A.includes(';')||B.includes(';')){
-   let aa=A.split(';').filter(Boolean),bb=B.split(';').filter(Boolean);
-   if(aa.length!==bb.length)return false;
-   let used=Array(bb.length).fill(false);
-   return aa.every(v=>{let j=bb.findIndex((w,k)=>!used[k]&&oneEq(v,w));if(j<0)return false;used[j]=true;return true});
+function eqInput(v,answers){
+ let n=norm(v);
+ if(answers.some(a=>norm(a)===n)) return true;
+ let nv=numericValue(n);
+ if(nv!==null){
+   return answers.some(a=>{let av=numericValue(a);return av!==null && Math.abs(nv-av)<1e-9});
  }
- return oneEq(A,B);
+ return false;
 }
-function malformed(s){return !s.trim()||/;;|==|\^\^/.test(s)}
-function begin(t){timed=t;document.getElementById('start').classList.add('hidden');document.getElementById('quiz').classList.remove('hidden');load();}
-function load(){let q=tasks[i];document.getElementById('meta').textContent=q[0]+' · '+q[1]+' · Aufgabe '+(i+1)+' von '+tasks.length;document.querySelector('#bar span').style.width=(100*i/tasks.length)+'%';document.getElementById('question').textContent=q[2];ans.value='';document.getElementById('feedback').classList.add('hidden');document.getElementById('next').classList.add('hidden');document.getElementById('check').disabled=false;t0=Date.now();ans.focus();}
-function check(){let q=tasks[i],v=ans.value,f=document.getElementById('feedback');if(malformed(v)){f.innerHTML='<b>Eingabe noch nicht eindeutig.</b><br>Bitte überprüfe die Schreibweise. Dieser Versuch wird nicht als falsch gewertet.';f.classList.remove('hidden');return}let ok=eq(v,q[3]);score[q[0]]??={ok:0,n:0};score[q[0]].n++;if(ok)score[q[0]].ok++;if(timed)times.push((Date.now()-t0)/1000);f.innerHTML=ok?'<b>Richtig.</b> Deine Eingabe wurde mathematisch korrekt erkannt.':'<b>Noch nicht richtig.</b><br><br>'+q[4]+'<br><br><b>Beispiel:</b> '+q[5];f.classList.remove('hidden');document.getElementById('check').disabled=true;document.getElementById('next').classList.remove('hidden');}
-function next(){i++;if(i<tasks.length)load();else finish();}
-function finish(){document.getElementById('quiz').classList.add('hidden');document.getElementById('end').classList.remove('hidden');let r=document.getElementById('results');Object.entries(score).forEach(([n,s])=>{let p=Math.round(100*s.ok/s.n),c=p>80?'#2f8f4e':p>50?'#c99a16':'#bd443c';r.innerHTML+=`<div class="result"><span><span class="dot" style="background:${c}"></span>${n}</span><b>${p} %</b></div>`});if(timed&&times.length)document.getElementById('timing').textContent='⏱ Durchschnitt: '+(times.reduce((a,b)=>a+b,0)/times.length).toFixed(1)+' s pro Aufgabe';}
-const keys=['x','y','z','0','1','2','3','4','5','6','7','8','9','+','−','×','/','(',')','^','²',';','.','⌫'];let kb=document.getElementById('keys');keys.forEach(k=>{let b=document.createElement('button');b.textContent=k;b.onclick=()=>{if(k==='⌫')ans.value=ans.value.slice(0,-1);else ans.value+=k;ans.focus()};kb.appendChild(b)});ans.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('check').disabled)check()})
+function head(label){return `<div class="muted tiny">SEK-I Diagnosetrainer · ${state.version}</div><h1>${label}</h1>`}
+function start(){app.innerHTML=`<div class="card">${head("SEK 1 Trainer 1")}
+<div style="max-width:650px;margin:18px auto;text-align:center"><div style="font-size:3rem">∑</div><h2>Diagnose · Üben · erneut prüfen</h2><p>Ein klassenübergreifender Mathe-Trainer für die Sekundarstufe I.</p></div>
+<p><span class=tag>Klasse 7–10</span><span class=tag>adaptiv</span><span class=tag>interaktiv</span><span class=tag>iPad-tauglich</span></p>
+<p class=muted>Während der Diagnose gibt es keine Lösungshinweise. Deine Antworten werden zunächst neutral gespeichert.</p>
+<div class=row><button class=primary onclick="renderQ()">Diagnose starten</button><button onclick="toggleInfo()">Aufbau & Hintergrundinformationen</button></div>
+<div id=info class=hidden><div class="card" style="margin-top:18px;background:#f8fafc">
+<h2>So ist der Trainer aufgebaut</h2>
+<div class="flow">
+<div class="flowStep"><b>1</b><span>Diagnose</span><small>5 Themen<br>30 Basisaufgaben</small></div><div class="arrow">→</div>
+<div class="flowStep"><b>2</b><span>Lernprofil</span><small>sicher · festigen · aufbauen</small></div><div class="arrow">→</div>
+<div class="flowStep"><b>3</b><span>Förderung</span><small>nur bei Bedarf<br>2 Aufgaben je Bereich</small></div><div class="arrow">→</div>
+<div class="flowStep"><b>4</b><span>Profi-Check</span><small>neue Parallelaufgaben</small></div></div>
+<h3>Themengebiete</h3><p>Variablenverständnis · Terme aufstellen & interpretieren · Termumformungen · Ausmultiplizieren & Ausklammern · Bruchrechnen</p>
+<h3>Aufgaben und Förderung</h3><p>Jedes Thema enthält <b>4 Verständnis-/Diagnoseaufgaben</b> und <b>2 Routineaufgaben</b>. Auffällige Bereiche werden anschließend gezielt geübt. In der Förderphase stehen <b>Tipp / Hilfe</b> und eine <b>Musterlösung</b> zur Verfügung. Förderaufgaben zählen nicht als diagnostischer Nachweis.</p>
+<h3>Bewertung</h3><p>Der Trainer arbeitet nicht mit einer bloßen Gesamtpunktzahl. Die Bereiche werden getrennt betrachtet. Eine falsche Antwort ist zunächst nur ein diagnostischer Hinweis. Nach der Förderung entscheidet ein neuer, hilfefreier Profi-Check darüber, ob ein Bereich als sicher gilt.</p>
+<h3>Wenn es noch nicht sicher ist</h3><p>Wer einen Bereich bereits sicher beherrscht, erhält dort keine unnötige Förderung. Bei weiter bestehender Unsicherheit folgt höchstens eine zweite Förderrunde; danach wird weitere Unterstützung durch die Lehrkraft empfohlen.</p>
+</div></div></div>`}
+function toggleInfo(){document.getElementById("info").classList.toggle("hidden")}
+function current(){return topics[state.ti].qs[state.qi]}
+function renderQ(){
+ if(state.ti>=topics.length)return finishDiagnosis();
+ let t=topics[state.ti],q=current(), done=state.ti*6+state.qi;
+ app.innerHTML=`<div class="card">${head("Diagnose")}<div class=bar><i style="width:${done/30*100}%"></i></div><p><span class=tag>${t.name}</span>${q.routine?'<span class=tag>Routine</span>':''}</p><h2>${q.q}</h2>${q.prompt?`<p class=box>${q.prompt}</p>`:""}<div id=answer>${answerUI(q)}</div><button onclick="unsure()">Ich bin mir nicht sicher</button><div id=fb></div></div>`;
+}
+function answerUI(q){
+ if(q.type==="input")return `<input id=inp inputmode=text autocomplete=off placeholder="Antwort eingeben"><br><button class=primary onclick="submitInput()">Antwort speichern</button>`;
+ if(q.type==="area")return `<div class=row><div class=box style="min-width:240px"><b>Höhe: ${q.height}</b><hr><div class=row><div style="flex:2;border:1px solid;padding:25px">${q.labels[0]}</div><div style="flex:1;border:1px solid;padding:25px">${q.labels[1]}</div></div></div></div>${choices(q)}`;
+ return choices(q)
+}
+function choices(q){return q.opts.map((o,i)=>`<button class=choice onclick="submitChoice(${i})">${o}</button>`).join("")}
+function record(ok,answer,uns=false){
+ let t=topics[state.ti],q=current();state.log.push({topic:t.id,topicName:t.name,phase:"Diagnose",q:q.q,answer,ok,uns,routine:!!q.routine});
+ if(!ok||uns) state.weak[t.id]=(state.weak[t.id]||0)+1;
+ document.getElementById("answer").innerHTML="";document.getElementById("fb").innerHTML=`<div class=feedback>Antwort gespeichert.</div><button class=primary onclick="nextQ()">Weiter</button>`;
+}
+function submitChoice(i){let q=current();record(i===q.ans,q.opts[i])}
+function submitInput(){let q=current(),v=document.getElementById("inp").value;if(!v.trim())return;record(eqInput(v,q.answers),v)}
+function unsure(){record(false,"Ich bin mir nicht sicher",true)}
+function nextQ(){state.qi++;if(state.qi>=topics[state.ti].qs.length){state.ti++;state.qi=0}renderQ()}
+function finishDiagnosis(){
+ let weak=topics.filter(t=>state.weak[t.id]); if(!weak.length)return finalScreen();
+ state.supportQueue=weak.map(t=>t.id);state.supportIndex=0;
+ app.innerHTML=`<div class="card">${head("Dein erstes Lernprofil")}<p>Die Diagnose ist abgeschlossen. In ${weak.length} Bereich${weak.length>1?"en":""} lohnt sich jetzt gezieltes Üben.</p>${profileTable()}<div class="support card"><h2>Jetzt wird geübt</h2><p>Nur die auffälligen Bereiche werden trainiert. Die beiden Förderaufgaben steigen im Niveau.</p><button class=primary onclick="supportStart()">Förderung starten</button></div></div>`;
+}
+function profileTable(){return `<table class=profile><tr><th>Bereich</th><th>Status</th></tr>${topics.map(t=>`<tr><td>${t.name}</td><td>${state.weak[t.id]?"noch festigen":"sicher"}</td></tr>`).join("")}</table>`}
+const support={
+var:[{q:"Ziehe gedanklich eine Zahl in die Variable ein: x = 3. Welche Karte zeigt 2x?",opts:["3 + 2","3 · 2","3²"],ans:1,h:"x steht hier für einen Zahlenwert. 2x bedeutet: 2 mal dieser Wert.",sol:"Setze x = 3 ein: 2x = 2 · 3 = 6. Deshalb passt „3 · 2“."},{q:"Übertrage selbst: Für a = −4, welcher Wert gehört zu 3a + 5?",opts:["−7","−17","17"],ans:0,h:"Ersetze zuerst a durch −4. Achte auf das Vorzeichen.",sol:"3a + 5 = 3 · (−4) + 5 = −12 + 5 = −7."}],
+text:[{q:"Ordne zu: „Das Dreifache einer Zahl, vermehrt um 4“",opts:["3x + 4","3(x + 4)","x + 7"],ans:0,h:"Zuerst wird die Zahl verdreifacht; danach kommen 4 dazu.",sol:"Das Dreifache von x ist 3x. „vermehrt um 4“ ergibt 3x + 4."},{q:"Welche Übersetzung ist korrekt: „7 weniger als das Doppelte von x“?",opts:["7 − 2x","2x − 7","2(x − 7)"],ans:1,h:"Beginne mit dem Doppelten von x.",sol:"Das Doppelte ist 2x. Davon werden 7 abgezogen: 2x − 7."}],
+simp:[{q:"Sortiere gedanklich nach gleichartigen Teilen: 4x + 3x + 2. Was lässt sich zusammenfassen?",opts:["4x und 3x","3x und 2","alles zu 9x"],ans:0,h:"Nur Terme mit demselben Variablenteil sind gleichartig.",sol:"4x und 3x haben beide den Variablenteil x. Daher 4x + 3x = 7x; die 2 bleibt: 7x + 2."},{q:"Vereinfache nun selbst: 6a − 2 + 3a + 5.",opts:["9a + 3","9a + 7","7a + 3"],ans:0,h:"Fasse a-Terme und Zahlen jeweils getrennt zusammen.",sol:"6a + 3a = 9a und −2 + 5 = 3. Ergebnis: 9a + 3."}],
+dist:[{q:"Flächenmodell: Ein Rechteck ist 3 hoch und in Breiten x und 4 geteilt. Welche Teilflächen entstehen?",opts:["3x und 12","3x und 4","x und 12"],ans:0,h:"Fläche = Höhe · Breite. Berechne beide Teilrechtecke getrennt.",sol:"Links: 3 · x = 3x. Rechts: 3 · 4 = 12. Gesamt: 3x + 12."},{q:"Übertrage ohne Flächenmodell: −2(x − 6) = ?",opts:["−2x + 12","−2x − 12","−2x − 6"],ans:0,h:"Multipliziere −2 mit beiden Summanden – auch mit −6.",sol:"−2 · x = −2x und −2 · (−6) = +12. Also −2x + 12."}],
+frac:[{q:"Anschaulich: Zwei von sechs gleich großen Teilen sind markiert. Welcher Bruch beschreibt denselben Anteil gekürzt?",opts:["1/3","2/3","1/6"],ans:0,h:"Teile Zähler und Nenner durch dieselbe Zahl.",sol:"2/6 lässt sich durch 2 kürzen: (2 : 2)/(6 : 2) = 1/3."},{q:"Übertrage: 2/3 + 1/6 = ?",opts:["3/9","5/6","1/2"],ans:1,h:"Bringe beide Brüche zuerst auf den Nenner 6.",sol:"2/3 = 4/6. Dann 4/6 + 1/6 = 5/6."}]
+};
+function supportStart(){renderSupport()}
+function renderSupport(){
+ if(state.supportIndex>=state.supportQueue.length)return transition();
+ let id=state.supportQueue[state.supportIndex],t=topics.find(x=>x.id===id),idx=state.aid[id]?.step||0,q=support[id][idx];
+ app.innerHTML=`<div class="card support">${head("Förderung")}<p><span class=tag>${t.name}</span><span class=tag>Förderaufgabe ${idx+1} von 2</span></p><h2>${q.q}</h2><div id=answer>${q.opts.map((o,i)=>`<button class=choice onclick="supportAnswer('${id}',${i})">${pretty(o)}</button>`).join("")}</div><div class=row><button onclick="hint('${id}')">Tipp / Hilfe</button><button onclick="solution('${id}')">Musterlösung anzeigen</button></div><div id=fb></div></div>`;
+}
+function pretty(s){return s.replace(/(\d+)\/(\d+)/g,'<span class="frac"><span>$1</span><span>$2</span></span>')}
+function ensureAid(id){if(!state.aid[id])state.aid[id]={step:0,hint:false,solution:false}}
+function hint(id){ensureAid(id);state.aid[id].hint=true;let q=support[id][state.aid[id].step];document.getElementById("fb").innerHTML=`<div class=feedback><b>Tipp / Hilfe:</b> ${q.h}</div>`}
+function solution(id){ensureAid(id);state.aid[id].solution=true;let q=support[id][state.aid[id].step];document.getElementById("fb").innerHTML=`<div class=solution><b>Musterlösung:</b> ${q.sol}</div>`}
+function supportAnswer(id,i){ensureAid(id);let a=state.aid[id],q=support[id][a.step],ok=i===q.ans;state.log.push({topic:id,phase:"Förderung",step:a.step+1,ok,hint:a.hint,solution:a.solution});document.getElementById("answer").innerHTML="";document.getElementById("fb").innerHTML=`<div class=feedback>${ok?"Das passt.":"Noch nicht ganz."} ${ok?"":"Nutze bei Bedarf Tipp/Hilfe oder die Musterlösung."}</div><button class=primary onclick="advanceSupport('${id}')">Weiter</button>`}
+function advanceSupport(id){ensureAid(id);if(state.aid[id].step===0){state.aid[id]={step:1,hint:false,solution:false};renderSupport()}else{state.supportIndex++;renderSupport()}}
+function transition(){state.recheck=state.supportQueue.slice();state.reIndex=0;app.innerHTML=`<div class=card>${head("Förderung abgeschlossen")}<h2>Bereit für einen erneuten Test?</h2><p>Im Algebra-Profi-Check werden nur die Bereiche geprüft, an denen du gearbeitet hast. Es gibt neue Aufgaben und keine Tipps oder Musterlösungen.</p><button class=primary onclick="renderRe()">Algebra-Profi-Check starten</button></div>`}
+const reQ={
+var:{q:"Für x = −3: Welchen Wert hat 4x + 5?",opts:["−7","−17","17"],ans:0},
+text:{q:"Welcher Term bedeutet: „Das Fünffache einer Zahl, vermindert um 2“?",opts:["5x − 2","5(x − 2)","2 − 5x"],ans:0},
+simp:{q:"Vereinfache: 8x − 3x + 4.",opts:["5x + 4","5x","11x + 4"],ans:0},
+dist:{q:"Multipliziere aus: 5(x − 3).",opts:["5x − 15","5x − 3","5x + 15"],ans:0},
+frac:{q:"Berechne: 1/4 + 1/2.",opts:["2/6","3/4","1/6"],ans:1}
+};
+function renderRe(){
+ if(state.reIndex>=state.recheck.length)return reFinish();
+ let id=state.recheck[state.reIndex],t=topics.find(x=>x.id===id),q=reQ[id];
+ app.innerHTML=`<div class=card>${head("Algebra-Profi-Check")}<p><span class=tag>${t.name}</span></p><h2>${pretty(q.q)}</h2>${q.opts.map((o,i)=>`<button class=choice onclick="reAnswer('${id}',${i})">${pretty(o)}</button>`).join("")}<button onclick="reAnswer('${id}',-1)">Ich bin mir nicht sicher</button><div id=fb></div></div>`
+}
+function reAnswer(id,i){let q=reQ[id],ok=i===q.ans;state.log.push({topic:id,phase:"Re-Diagnose",cycle:state.cycle,ok});if(ok)delete state.weak[id];document.querySelectorAll("button").forEach(b=>b.disabled=true);document.getElementById("fb").innerHTML=`<div class=feedback>Antwort gespeichert.</div><button class=primary onclick="nextRe()">Weiter</button>`;document.querySelector("#fb button").disabled=false}
+function nextRe(){state.reIndex++;renderRe()}
+function reFinish(){
+ let still=state.recheck.filter(id=>state.weak[id]);
+ if(still.length && state.cycle<2){state.cycle++;state.supportQueue=still;state.supportIndex=0;still.forEach(id=>state.aid[id]={step:0,hint:false,solution:false});app.innerHTML=`<div class=card>${head("Noch einmal gezielt üben")}<p>Einige Bereiche sind noch nicht sicher. Dafür folgt eine zweite kurze Förderrunde mit neuen bzw. strukturgleichen Aufgaben.</p><button class=primary onclick="renderSupport()">Zweite Förderrunde starten</button></div>`}
+ else finalScreen()
+}
+function finalScreen(){
+ let allSafe=Object.keys(state.weak).length===0;
+ app.innerHTML=`<div class=card>${head("Abschlussprofil")}<h2>${allSafe?"Geschafft!":"Dein aktueller Lernstand"}</h2><p>${allSafe?"Du hast die geprüften Bereiche sicher bearbeitet.":"Einige Bereiche solltest du mit einer Lehrkraft oder mit weiterem Material vertiefen."}</p>${profileTable()}<div class=card><h2>Für Lehrende</h2><button onclick="teacher()">Diagnoseprotokoll anzeigen</button><div id=teacher></div></div><button onclick="location.reload()">Neu beginnen</button></div>`;
+}
+function teacher(){let rows=state.log.map(x=>`<tr><td>${x.topicName||topics.find(t=>t.id===x.topic)?.name||x.topic}</td><td>${x.phase}</td><td>${x.ok?"sicher/richtig":"auffällig"}</td><td>${x.hint?"Tipp/Hilfe ":""}${x.solution?"Musterlösung":""}</td></tr>`).join("");document.getElementById("teacher").innerHTML=`<p class=muted>Beobachtungen sind diagnostische Hinweise, keine Zuschreibung einer festen Fehlvorstellung.</p><table class=profile><tr><th>Bereich</th><th>Phase</th><th>Beobachtung</th><th>Hilfen</th></tr>${rows}</table>`}
+function selfTest(){
+ let tests=[
+ eqInput("3/5",["0.6"]),eqInput("0,6",["3/5"]),eqInput("0,5",["1/2"]),
+ eqInput("2/4",["1/2"]),!eqInput("2/3",["1/2"]),eqInput("8+2x",["2x+8","8+2x"]),
+ norm("x=5")==="5",topics.length===5,topics.every(t=>t.qs.length===6),
+ Object.keys(support).length===5,Object.keys(reQ).length===5
+ ];return tests.every(Boolean)
+}
+if(!selfTest()) app.innerHTML=`<div class=card><h1>Technischer Selbsttest fehlgeschlagen</h1><p>Der Trainer wurde aus Sicherheitsgründen nicht gestartet.</p></div>`; else start();
 </script></body></html>
