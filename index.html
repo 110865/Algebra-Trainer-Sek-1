@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SEK 1 Trainer 1</title>
+<title>SEK 1 Trainer 1 · V1.3</title>
 <style>
 :root{--bg:#f5f7fb;--card:#fff;--ink:#18202b;--muted:#647184;--line:#dfe5ec;--accent:#315b96;--support:#fff8df}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
@@ -46,8 +46,8 @@ const topics=[
 {type:"area",q:"Flächenmodell: Welche Summe beschreibt die Gesamtfläche?",labels:["x","4"],height:"3",opts:["3x + 4","3x + 12","x + 12","12x"],ans:1},
 {type:"mc",q:'Klammere vollständig aus: <span class="math">6x + 12</span>.',opts:["6(x + 2)","6(x + 12)","3(x + 4)","2(3x + 12)"],ans:0},
 {type:"order",q:'Welche Reihenfolge beschreibt <span class="math">−2(x − 5)</span> korrekt?',opts:["−2 · x und −2 · (−5) → −2x + 10","−2 · x und −5 → −2x − 5","−2x − 10","−2 + x − 5"],ans:0},
-{type:"input",routine:true,q:'Multipliziere aus: <span class="math">4(2x + 3)</span>.',answers:["8x+12","12+8x"]},
-{type:"input",routine:true,q:'Klammere vollständig aus: <span class="math">10x + 15</span>.',answers:["5(2x+3)","5*(2x+3)"]}
+{type:"input",routine:true,q:'Multipliziere aus: <span class="math">4(2x + 3)</span>.',requireExpanded:true,answers:["8x+12","12+8x"]},
+{type:"input",routine:true,q:'Klammere vollständig aus: <span class="math">10x + 15</span>.',requireFactor:true,answers:["5(2x+3)","5*(2x+3)"]}
 ]},
 {id:"frac",name:"Bruchrechnen",qs:[
 {type:"mc",q:'Welche Zahl ist gleich <span class="frac"><span>3</span><span>4</span></span>?',opts:['<span class="frac"><span>6</span><span>8</span></span>','<span class="frac"><span>4</span><span>5</span></span>','<span class="frac"><span>3</span><span>8</span></span>','<span class="frac"><span>9</span><span>16</span></span>'],ans:0},
@@ -58,8 +58,13 @@ const topics=[
 {type:"input",routine:true,q:'Berechne und kürze: <span class="frac"><span>3</span><span>4</span></span> · <span class="frac"><span>2</span><span>3</span></span>.',answers:["1/2","0.5","0,5","2/4","6/12"]}
 ]}];
 
-let state={ti:0,qi:0,phase:"diagnosis",weak:{},log:[],supportQueue:[],supportIndex:0,recheck:[],reIndex:0,cycle:1,aid:{},version:"1.2 · 30.09.2026"};
+let state={ti:0,qi:0,phase:"diagnosis",weak:{},misses:{},correct:{},uncertain:{},log:[],supportQueue:[],supportIndex:0,recheck:[],reIndex:0,cycle:1,aid:{},version:"1.3 · 30.09.2026"};
 const app=document.getElementById("app");
+
+function saveState(){try{localStorage.setItem("sek1trainer1_v13",JSON.stringify(state))}catch(e){}}
+function clearState(){try{localStorage.removeItem("sek1trainer1_v13")}catch(e){} location.reload()}
+function restoreState(){try{let x=localStorage.getItem("sek1trainer1_v13");if(x){let o=JSON.parse(x);if(o&&o.version===state.version){state=o;return true}}}catch(e){}return false}
+
 function norm(s){return (s||"").toLowerCase().replace(/\s+/g,"").replace(/,/g,".").replace(/·/g,"*").replace(/[−–]/g,"-").replace(/^([xyzab])=/,"").replace(/\*/g,"")}
 function numericValue(s){
  let z=norm(s);
@@ -69,13 +74,16 @@ function numericValue(s){
  if(/^[-+]?\d+(\.\d+)?$/.test(z)) return Number(z);
  return null;
 }
+function evalAlg(expr,val){
+ let z=norm(expr).replace(/\^/g,"**");
+ if(!/^[0-9xyzab+\-*/().]+$/.test(z))return null;
+ z=z.replace(/(\d)([xyzab])/g,"$1*$2").replace(/([xyzab])(\d)/g,"$1*$2").replace(/(\d|[xyzab]|\))\(/g,"$1*(").replace(/\)(\d|[xyzab])/g,")*$1");
+ try{let f=Function("x","y","z","a","b","return ("+z+")");let r=f(val,val+1,val-1,val+2,val-2);return Number.isFinite(r)?r:null}catch(e){return null}
+}
 function eqInput(v,answers){
- let n=norm(v);
- if(answers.some(a=>norm(a)===n)) return true;
- let nv=numericValue(n);
- if(nv!==null){
-   return answers.some(a=>{let av=numericValue(a);return av!==null && Math.abs(nv-av)<1e-9});
- }
+ let n=norm(v); if(answers.some(a=>norm(a)===n)) return true;
+ let nv=numericValue(n); if(nv!==null)return answers.some(a=>{let av=numericValue(a);return av!==null&&Math.abs(nv-av)<1e-9});
+ if(/[xyzab]/.test(n)) return answers.some(a=>[-3,-1,2,5].every(k=>{let u=evalAlg(n,k),w=evalAlg(a,k);return u!==null&&w!==null&&Math.abs(u-w)<1e-8}));
  return false;
 }
 function head(label){return `<div class="muted tiny">SEK-I Diagnosetrainer · ${state.version}</div><h1>${label}</h1>`}
@@ -83,25 +91,27 @@ function start(){app.innerHTML=`<div class="card">${head("SEK 1 Trainer 1")}
 <div style="max-width:650px;margin:18px auto;text-align:center"><div style="font-size:3rem">∑</div><h2>Diagnose · Üben · erneut prüfen</h2><p>Ein klassenübergreifender Mathe-Trainer für die Sekundarstufe I.</p></div>
 <p><span class=tag>Klasse 7–10</span><span class=tag>adaptiv</span><span class=tag>interaktiv</span><span class=tag>iPad-tauglich</span></p>
 <p class=muted>Während der Diagnose gibt es keine Lösungshinweise. Deine Antworten werden zunächst neutral gespeichert.</p>
-<div class=row><button class=primary onclick="renderQ()">Diagnose starten</button><button onclick="toggleInfo()">Aufbau & Hintergrundinformationen</button></div>
+<div class=row><button class=primary onclick="renderQ()">Diagnose starten</button><button id=resumeBtn class=hidden onclick="resumeTrainer()">Bearbeitung fortsetzen</button><button onclick="toggleInfo()">Aufbau & Hintergrundinformationen</button></div>
 <div id=info class=hidden><div class="card" style="margin-top:18px;background:#f8fafc">
 <h2>So ist der Trainer aufgebaut</h2>
 <div class="flow">
-<div class="flowStep"><b>1</b><span>Diagnose</span><small>5 Themen<br>30 Basisaufgaben</small></div><div class="arrow">→</div>
+<div class="flowStep"><b>1</b><span>Diagnose</span><small>5 Themen<br>adaptiver Aufgabenpool</small></div><div class="arrow">→</div>
 <div class="flowStep"><b>2</b><span>Lernprofil</span><small>sicher · festigen · aufbauen</small></div><div class="arrow">→</div>
 <div class="flowStep"><b>3</b><span>Förderung</span><small>nur bei Bedarf<br>2 Aufgaben je Bereich</small></div><div class="arrow">→</div>
 <div class="flowStep"><b>4</b><span>Profi-Check</span><small>neue Parallelaufgaben</small></div></div>
 <h3>Themengebiete</h3><p>Variablenverständnis · Terme aufstellen & interpretieren · Termumformungen · Ausmultiplizieren & Ausklammern · Bruchrechnen</p>
-<h3>Aufgaben und Förderung</h3><p>Jedes Thema enthält <b>4 Verständnis-/Diagnoseaufgaben</b> und <b>2 Routineaufgaben</b>. Auffällige Bereiche werden anschließend gezielt geübt. In der Förderphase stehen <b>Tipp / Hilfe</b> und eine <b>Musterlösung</b> zur Verfügung. Förderaufgaben zählen nicht als diagnostischer Nachweis.</p>
+<h3>Aufgaben und Förderung</h3><p>Für jedes Thema stehen <b>4 Verständnis-/Diagnoseaufgaben</b> und <b>2 Routineaufgaben</b> bereit. Sichere Lernende können durch die adaptive Steuerung einzelne Vertiefungsaufgaben überspringen. Auffällige Bereiche werden anschließend gezielt geübt. In der Förderphase stehen <b>Tipp / Hilfe</b> und eine <b>Musterlösung</b> zur Verfügung. Förderaufgaben zählen nicht als diagnostischer Nachweis.</p>
 <h3>Bewertung</h3><p>Der Trainer arbeitet nicht mit einer bloßen Gesamtpunktzahl. Die Bereiche werden getrennt betrachtet. Eine falsche Antwort ist zunächst nur ein diagnostischer Hinweis. Nach der Förderung entscheidet ein neuer, hilfefreier Profi-Check darüber, ob ein Bereich als sicher gilt.</p>
 <h3>Wenn es noch nicht sicher ist</h3><p>Wer einen Bereich bereits sicher beherrscht, erhält dort keine unnötige Förderung. Bei weiter bestehender Unsicherheit folgt höchstens eine zweite Förderrunde; danach wird weitere Unterstützung durch die Lehrkraft empfohlen.</p>
 </div></div></div>`}
 function toggleInfo(){document.getElementById("info").classList.toggle("hidden")}
+function resumeTrainer(){if(state.phase==="support")renderSupport();else if(state.phase==="recheck")renderRe();else renderQ()}
 function current(){return topics[state.ti].qs[state.qi]}
 function renderQ(){
+ state.phase="diagnosis"; saveState();
  if(state.ti>=topics.length)return finishDiagnosis();
  let t=topics[state.ti],q=current(), done=state.ti*6+state.qi;
- app.innerHTML=`<div class="card">${head("Diagnose")}<div class=bar><i style="width:${done/30*100}%"></i></div><p><span class=tag>${t.name}</span>${q.routine?'<span class=tag>Routine</span>':''}</p><h2>${q.q}</h2>${q.prompt?`<p class=box>${q.prompt}</p>`:""}<div id=answer>${answerUI(q)}</div><button onclick="unsure()">Ich bin mir nicht sicher</button><div id=fb></div></div>`;
+ app.innerHTML=`<div class="card">${head("Diagnose")}<div class=bar><i style="width:${Math.min(100,(state.ti/topics.length)*100)}%"></i></div><p><span class=tag>${t.name}</span>${q.routine?'<span class=tag>Routine</span>':''}</p><h2>${q.q}</h2>${q.prompt?`<p class=box>${q.prompt}</p>`:""}<div id=answer>${answerUI(q)}</div><button onclick="unsure()">Ich bin mir nicht sicher</button><div id=fb></div></div>`;
 }
 function answerUI(q){
  if(q.type==="input")return `<input id=inp inputmode=text autocomplete=off placeholder="Antwort eingeben"><br><button class=primary onclick="submitInput()">Antwort speichern</button>`;
@@ -111,19 +121,41 @@ function answerUI(q){
 function choices(q){return q.opts.map((o,i)=>`<button class=choice onclick="submitChoice(${i})">${o}</button>`).join("")}
 function record(ok,answer,uns=false){
  let t=topics[state.ti],q=current();state.log.push({topic:t.id,topicName:t.name,phase:"Diagnose",q:q.q,answer,ok,uns,routine:!!q.routine});
- if(!ok||uns) state.weak[t.id]=(state.weak[t.id]||0)+1;
+ if(ok) state.correct[t.id]=(state.correct[t.id]||0)+1;
+ else { state.misses[t.id]=(state.misses[t.id]||0)+1; if(uns) state.uncertain[t.id]=(state.uncertain[t.id]||0)+1; }
+ saveState();
  document.getElementById("answer").innerHTML="";document.getElementById("fb").innerHTML=`<div class=feedback>Antwort gespeichert.</div><button class=primary onclick="nextQ()">Weiter</button>`;
 }
 function submitChoice(i){let q=current();record(i===q.ans,q.opts[i])}
-function submitInput(){let q=current(),v=document.getElementById("inp").value;if(!v.trim())return;record(eqInput(v,q.answers),v)}
+function submitInput(){let q=current(),v=document.getElementById("inp").value;if(!v.trim())return;let ok=eqInput(v,q.answers);if(q.requireFactor&&!/[()]/.test(v))ok=false;if(q.requireExpanded&&/[()]/.test(v))ok=false;record(ok,v)}
 function unsure(){record(false,"Ich bin mir nicht sicher",true)}
-function nextQ(){state.qi++;if(state.qi>=topics[state.ti].qs.length){state.ti++;state.qi=0}renderQ()}
-function finishDiagnosis(){
+function nextQ(){
+ let t=topics[state.ti];
+ // Adaptive Verkürzung: Nach drei unabhängigen richtigen Verständnisaufgaben wird die vierte Basis-Verständnisaufgabe übersprungen; die beiden Routineaufgaben bleiben als eigener Evidenztyp erhalten.
+ if(state.qi===2 && (state.misses[t.id]||0)===0 && (state.correct[t.id]||0)>=3){state.qi=4;} else state.qi++;
+ if(state.qi>=t.qs.length){state.ti++;state.qi=0}saveState();renderQ()
+}
+
+const counterQ={
+var:{q:"Gegenprobe: Für x = 3, was bedeutet 2x?",opts:["2 + 3","2 · 3","3²"],ans:1},
+text:{q:"Gegenprobe: Welcher Term passt zu ‚5 mehr als das Doppelte von x‘?",opts:["2x + 5","2(x + 5)","5x + 2"],ans:0},
+simp:{q:"Gegenprobe: Welche Terme darfst du zusammenfassen? 3x + 4 + 2x",opts:["3x und 2x","3x und 4","alle"],ans:0},
+dist:{q:"Gegenprobe mit Flächenidee: 2(x + 3) ergibt welche Teilflächen?",opts:["2x und 6","2x und 3","x und 6"],ans:0},
+frac:{q:"Gegenprobe: Welcher Bruch ist gleich 2/4?",opts:["1/2","2/2","1/4"],ans:0}
+};
+let counterQueue=[],counterIndex=0;
+function beginCounterchecks(){counterQueue=topics.filter(t=>(state.misses[t.id]||0)===1 || (state.uncertain[t.id]||0)>0).map(t=>t.id);counterIndex=0;if(counterQueue.length)return renderCounter();return buildProfile();}
+function renderCounter(){if(counterIndex>=counterQueue.length)return buildProfile();let id=counterQueue[counterIndex],t=topics.find(x=>x.id===id),q=counterQ[id];app.innerHTML=`<div class=card>${head("Diagnostische Gegenprobe")}<p class=muted>Eine einzelne Auffälligkeit wird noch nicht als Förderbedarf gewertet. Deshalb folgt eine zweite, unabhängige Darstellung.</p><p><span class=tag>${t.name}</span></p><h2>${pretty(q.q)}</h2>${q.opts.map((o,i)=>`<button class=choice onclick="answerCounter('${id}',${i})">${pretty(o)}</button>`).join("")}<button onclick="answerCounter('${id}',-1)">Ich bin mir nicht sicher</button></div>`}
+function answerCounter(id,i){let q=counterQ[id],ok=i===q.ans;state.log.push({topic:id,phase:"Gegenprobe",ok});if(!ok){state.misses[id]=(state.misses[id]||0)+1;}else{state.correct[id]=(state.correct[id]||0)+1;}counterIndex++;saveState();renderCounter()}
+
+function finishDiagnosis(){beginCounterchecks()}
+function buildProfile(){
+ topics.forEach(t=>{let m=state.misses[t.id]||0,c=state.correct[t.id]||0,u=state.uncertain[t.id]||0; if(m>=2 || u>=1 || c<4) state.weak[t.id]=m||1; else delete state.weak[t.id];});
  let weak=topics.filter(t=>state.weak[t.id]); if(!weak.length)return finalScreen();
- state.supportQueue=weak.map(t=>t.id);state.supportIndex=0;
+ state.supportQueue=weak.map(t=>t.id);state.supportIndex=0; saveState();
  app.innerHTML=`<div class="card">${head("Dein erstes Lernprofil")}<p>Die Diagnose ist abgeschlossen. In ${weak.length} Bereich${weak.length>1?"en":""} lohnt sich jetzt gezieltes Üben.</p>${profileTable()}<div class="support card"><h2>Jetzt wird geübt</h2><p>Nur die auffälligen Bereiche werden trainiert. Die beiden Förderaufgaben steigen im Niveau.</p><button class=primary onclick="supportStart()">Förderung starten</button></div></div>`;
 }
-function profileTable(){return `<table class=profile><tr><th>Bereich</th><th>Status</th></tr>${topics.map(t=>`<tr><td>${t.name}</td><td>${state.weak[t.id]?"noch festigen":"sicher"}</td></tr>`).join("")}</table>`}
+function profileTable(){return `<table class=profile><tr><th>Bereich</th><th>Status</th></tr>${topics.map(t=>`<tr><td>${t.name}</td><td>${state.weak[t.id]?((state.misses[t.id]||0)>=3?"weiter aufbauen":"noch festigen"):"sicher"}</td></tr>`).join("")}</table>`}
 const support={
 var:[{q:"Ziehe gedanklich eine Zahl in die Variable ein: x = 3. Welche Karte zeigt 2x?",opts:["3 + 2","3 · 2","3²"],ans:1,h:"x steht hier für einen Zahlenwert. 2x bedeutet: 2 mal dieser Wert.",sol:"Setze x = 3 ein: 2x = 2 · 3 = 6. Deshalb passt „3 · 2“."},{q:"Übertrage selbst: Für a = −4, welcher Wert gehört zu 3a + 5?",opts:["−7","−17","17"],ans:0,h:"Ersetze zuerst a durch −4. Achte auf das Vorzeichen.",sol:"3a + 5 = 3 · (−4) + 5 = −12 + 5 = −7."}],
 text:[{q:"Ordne zu: „Das Dreifache einer Zahl, vermehrt um 4“",opts:["3x + 4","3(x + 4)","x + 7"],ans:0,h:"Zuerst wird die Zahl verdreifacht; danach kommen 4 dazu.",sol:"Das Dreifache von x ist 3x. „vermehrt um 4“ ergibt 3x + 4."},{q:"Welche Übersetzung ist korrekt: „7 weniger als das Doppelte von x“?",opts:["7 − 2x","2x − 7","2(x − 7)"],ans:1,h:"Beginne mit dem Doppelten von x.",sol:"Das Doppelte ist 2x. Davon werden 7 abgezogen: 2x − 7."}],
@@ -131,18 +163,34 @@ simp:[{q:"Sortiere gedanklich nach gleichartigen Teilen: 4x + 3x + 2. Was lässt
 dist:[{q:"Flächenmodell: Ein Rechteck ist 3 hoch und in Breiten x und 4 geteilt. Welche Teilflächen entstehen?",opts:["3x und 12","3x und 4","x und 12"],ans:0,h:"Fläche = Höhe · Breite. Berechne beide Teilrechtecke getrennt.",sol:"Links: 3 · x = 3x. Rechts: 3 · 4 = 12. Gesamt: 3x + 12."},{q:"Übertrage ohne Flächenmodell: −2(x − 6) = ?",opts:["−2x + 12","−2x − 12","−2x − 6"],ans:0,h:"Multipliziere −2 mit beiden Summanden – auch mit −6.",sol:"−2 · x = −2x und −2 · (−6) = +12. Also −2x + 12."}],
 frac:[{q:"Anschaulich: Zwei von sechs gleich großen Teilen sind markiert. Welcher Bruch beschreibt denselben Anteil gekürzt?",opts:["1/3","2/3","1/6"],ans:0,h:"Teile Zähler und Nenner durch dieselbe Zahl.",sol:"2/6 lässt sich durch 2 kürzen: (2 : 2)/(6 : 2) = 1/3."},{q:"Übertrage: 2/3 + 1/6 = ?",opts:["3/9","5/6","1/2"],ans:1,h:"Bringe beide Brüche zuerst auf den Nenner 6.",sol:"2/3 = 4/6. Dann 4/6 + 1/6 = 5/6."}]
 };
+
+const supportSecond={
+var:[{q:"Für x = −2: Welche Karte zeigt 5x?",opts:["5 + (−2)","5 · (−2)","(−2)⁵"],ans:1,h:"5x bedeutet fünfmal den Wert von x.",sol:"Setze x = −2 ein: 5x = 5 · (−2) = −10."},{q:"Für b = 3: Welchen Wert hat 4b − 1?",opts:["11","8","13"],ans:0,h:"Ersetze b zuerst durch 3.",sol:"4b − 1 = 4 · 3 − 1 = 12 − 1 = 11."}],
+text:[{q:"Welcher Term passt zu: ‚Das Vierfache einer Zahl, um 3 vermindert‘?",opts:["4x − 3","4(x − 3)","3 − 4x"],ans:0,h:"Beginne mit dem Vierfachen der Zahl.",sol:"Vierfaches: 4x. Um 3 vermindert: 4x − 3."},{q:"Welche Formulierung passt zu 2(x + 5)?",opts:["Das Doppelte der Summe aus x und 5","Das Doppelte von x plus 5","5 mehr als x"],ans:0,h:"Die Klammer wird als Ganzes verdoppelt.",sol:"x + 5 ist die Summe; 2 davor bedeutet das Doppelte dieser Summe."}],
+simp:[{q:"Welche Teile sind in 5a + 2 + 4a − 7 gleichartig?",opts:["5a und 4a sowie 2 und −7","5a und 2","alle vier"],ans:0,h:"Gleicher Variablenteil gehört zusammen; reine Zahlen ebenfalls.",sol:"5a und 4a sind a-Terme; 2 und −7 sind Zahlen."},{q:"Vereinfache 9x − 4x + 6 − 2.",opts:["5x + 4","13x + 4","5x + 8"],ans:0,h:"Fasse x-Terme und Zahlen getrennt zusammen.",sol:"9x − 4x = 5x und 6 − 2 = 4; also 5x + 4."}],
+dist:[{q:"Flächenidee: 4(x + 2). Welche beiden Teilprodukte entstehen?",opts:["4x und 8","4x und 2","x und 8"],ans:0,h:"Multipliziere 4 mit jeder Breite.",sol:"4 · x = 4x und 4 · 2 = 8."},{q:"Multipliziere aus: −3(x − 4).",opts:["−3x + 12","−3x − 12","−3x − 4"],ans:0,h:"−3 wird mit beiden Klammerteilen multipliziert.",sol:"−3·x = −3x und −3·(−4)=+12. Ergebnis: −3x + 12."}],
+frac:[{q:"Kürze 6/9 vollständig.",opts:["2/3","3/4","5/8"],ans:0,h:"Teile Zähler und Nenner durch 3.",sol:"6 : 3 = 2 und 9 : 3 = 3; also 2/3."},{q:"Berechne 3/4 − 1/8.",opts:["5/8","2/4","1/2"],ans:0,h:"Schreibe 3/4 zuerst mit Nenner 8.",sol:"3/4 = 6/8; 6/8 − 1/8 = 5/8."}]
+};
+function activeSupport(id){return (state.cycle===1?support:supportSecond)[id]}
+
 function supportStart(){renderSupport()}
 function renderSupport(){
+ state.phase="support"; saveState();
  if(state.supportIndex>=state.supportQueue.length)return transition();
- let id=state.supportQueue[state.supportIndex],t=topics.find(x=>x.id===id),idx=state.aid[id]?.step||0,q=support[id][idx];
- app.innerHTML=`<div class="card support">${head("Förderung")}<p><span class=tag>${t.name}</span><span class=tag>Förderaufgabe ${idx+1} von 2</span></p><h2>${q.q}</h2><div id=answer>${q.opts.map((o,i)=>`<button class=choice onclick="supportAnswer('${id}',${i})">${pretty(o)}</button>`).join("")}</div><div class=row><button onclick="hint('${id}')">Tipp / Hilfe</button><button onclick="solution('${id}')">Musterlösung anzeigen</button></div><div id=fb></div></div>`;
+ let id=state.supportQueue[state.supportIndex],t=topics.find(x=>x.id===id),idx=state.aid[id]?.step||0,q=activeSupport(id)[idx];
+ app.innerHTML=`<div class="card support">${head("Förderung")}<p><span class=tag>${t.name}</span><span class=tag>Förderaufgabe ${idx+1} von 2</span></p><h2>${pretty(q.q)}</h2><div id=answer>${q.opts.map((o,i)=>`<button class=choice onclick="supportAnswer('${id}',${i})">${pretty(o)}</button>`).join("")}</div><div class=row><button onclick="hint('${id}')">Tipp / Hilfe</button><button onclick="solution('${id}')">Musterlösung anzeigen</button></div><div id=fb></div></div>`;
 }
 function pretty(s){return s.replace(/(\d+)\/(\d+)/g,'<span class="frac"><span>$1</span><span>$2</span></span>')}
 function ensureAid(id){if(!state.aid[id])state.aid[id]={step:0,hint:false,solution:false}}
-function hint(id){ensureAid(id);state.aid[id].hint=true;let q=support[id][state.aid[id].step];document.getElementById("fb").innerHTML=`<div class=feedback><b>Tipp / Hilfe:</b> ${q.h}</div>`}
-function solution(id){ensureAid(id);state.aid[id].solution=true;let q=support[id][state.aid[id].step];document.getElementById("fb").innerHTML=`<div class=solution><b>Musterlösung:</b> ${q.sol}</div>`}
-function supportAnswer(id,i){ensureAid(id);let a=state.aid[id],q=support[id][a.step],ok=i===q.ans;state.log.push({topic:id,phase:"Förderung",step:a.step+1,ok,hint:a.hint,solution:a.solution});document.getElementById("answer").innerHTML="";document.getElementById("fb").innerHTML=`<div class=feedback>${ok?"Das passt.":"Noch nicht ganz."} ${ok?"":"Nutze bei Bedarf Tipp/Hilfe oder die Musterlösung."}</div><button class=primary onclick="advanceSupport('${id}')">Weiter</button>`}
-function advanceSupport(id){ensureAid(id);if(state.aid[id].step===0){state.aid[id]={step:1,hint:false,solution:false};renderSupport()}else{state.supportIndex++;renderSupport()}}
+function hint(id){ensureAid(id);state.aid[id].hint=true;let q=activeSupport(id)[state.aid[id].step];document.getElementById("fb").innerHTML=`<div class=feedback><b>Tipp / Hilfe:</b> ${pretty(q.h)}</div>`}
+function solution(id){ensureAid(id);state.aid[id].solution=true;state.aid[id].needsTry=true;let q=activeSupport(id)[state.aid[id].step];document.getElementById("fb").innerHTML=`<div class=solution><b>Musterlösung:</b> ${pretty(q.sol)}</div><div class=feedback>Nach der Musterlösung folgt beim Weitergehen ein kurzer Selbstversuch.</div>`}
+function supportAnswer(id,i){ensureAid(id);let a=state.aid[id],q=activeSupport(id)[a.step],ok=i===q.ans;state.log.push({topic:id,phase:"Förderung",step:a.step+1,ok,hint:a.hint,solution:a.solution});document.getElementById("answer").innerHTML="";document.getElementById("fb").innerHTML=`<div class=feedback>${ok?"Das passt.":"Noch nicht ganz."} ${ok?"":"Nutze bei Bedarf Tipp/Hilfe oder die Musterlösung."}</div><button class=primary onclick="advanceSupport('${id}')">Weiter</button>`}
+
+const selfTry={var:{q:"Selbstversuch: Für x = 2, was ist 3x + 1?",opts:["7","6","9"],ans:0},text:{q:"Selbstversuch: ‚Das Dreifache von x, vermehrt um 2‘",opts:["3x + 2","3(x + 2)","2x + 3"],ans:0},simp:{q:"Selbstversuch: 4x + 3x + 1 = ?",opts:["7x + 1","7x","8x"],ans:0},dist:{q:"Selbstversuch: 2(x + 5) = ?",opts:["2x + 10","2x + 5","x + 10"],ans:0},frac:{q:"Selbstversuch: 1/2 + 1/4 = ?",opts:["3/4","2/6","1/6"],ans:0}};
+function renderSelfTry(id){let q=selfTry[id];app.innerHTML=`<div class="card support">${head("Kurzer Selbstversuch")}<p>Diese Aufgabe zählt nicht zur Diagnose.</p><h2>${pretty(q.q)}</h2>${q.opts.map((o,i)=>`<button class=choice onclick="finishSelfTry('${id}',${i})">${pretty(o)}</button>`).join("")}</div>`}
+function finishSelfTry(id,i){let q=selfTry[id];state.log.push({topic:id,phase:"Selbstversuch",ok:i===q.ans});state.aid[id].needsTry=false;advanceSupport(id,true)}
+
+function advanceSupport(id,afterTry=false){ensureAid(id);if(state.aid[id].needsTry&&!afterTry){renderSelfTry(id);return;}if(state.aid[id].step===0){state.aid[id]={step:1,hint:false,solution:false};renderSupport()}else{state.supportIndex++;renderSupport()}}
 function transition(){state.recheck=state.supportQueue.slice();state.reIndex=0;app.innerHTML=`<div class=card>${head("Förderung abgeschlossen")}<h2>Bereit für einen erneuten Test?</h2><p>Im Algebra-Profi-Check werden nur die Bereiche geprüft, an denen du gearbeitet hast. Es gibt neue Aufgaben und keine Tipps oder Musterlösungen.</p><button class=primary onclick="renderRe()">Algebra-Profi-Check starten</button></div>`}
 const reQ={
 var:{q:"Für x = −3: Welchen Wert hat 4x + 5?",opts:["−7","−17","17"],ans:0},
@@ -151,12 +199,14 @@ simp:{q:"Vereinfache: 8x − 3x + 4.",opts:["5x + 4","5x","11x + 4"],ans:0},
 dist:{q:"Multipliziere aus: 5(x − 3).",opts:["5x − 15","5x − 3","5x + 15"],ans:0},
 frac:{q:"Berechne: 1/4 + 1/2.",opts:["2/6","3/4","1/6"],ans:1}
 };
+const reQ2={var:{q:"Für x = 2: Welchen Wert hat 5x − 3?",opts:["7","13","3"],ans:0},text:{q:"Welcher Term bedeutet: ‚3 mehr als das Vierfache von x‘?",opts:["4x + 3","4(x + 3)","3x + 4"],ans:0},simp:{q:"Vereinfache: 7x + 2x − 5.",opts:["9x − 5","9x","4x"],ans:0},dist:{q:"Multipliziere aus: 3(x + 4).",opts:["3x + 12","3x + 4","7x"],ans:0},frac:{q:"Berechne: 2/3 − 1/6.",opts:["1/2","1/3","1/6"],ans:0}};
 function renderRe(){
+ state.phase="recheck"; saveState();
  if(state.reIndex>=state.recheck.length)return reFinish();
- let id=state.recheck[state.reIndex],t=topics.find(x=>x.id===id),q=reQ[id];
+ let id=state.recheck[state.reIndex],t=topics.find(x=>x.id===id),q=(state.cycle===1?reQ:reQ2)[id];
  app.innerHTML=`<div class=card>${head("Algebra-Profi-Check")}<p><span class=tag>${t.name}</span></p><h2>${pretty(q.q)}</h2>${q.opts.map((o,i)=>`<button class=choice onclick="reAnswer('${id}',${i})">${pretty(o)}</button>`).join("")}<button onclick="reAnswer('${id}',-1)">Ich bin mir nicht sicher</button><div id=fb></div></div>`
 }
-function reAnswer(id,i){let q=reQ[id],ok=i===q.ans;state.log.push({topic:id,phase:"Re-Diagnose",cycle:state.cycle,ok});if(ok)delete state.weak[id];document.querySelectorAll("button").forEach(b=>b.disabled=true);document.getElementById("fb").innerHTML=`<div class=feedback>Antwort gespeichert.</div><button class=primary onclick="nextRe()">Weiter</button>`;document.querySelector("#fb button").disabled=false}
+function reAnswer(id,i){let q=(state.cycle===1?reQ:reQ2)[id],ok=i===q.ans;state.log.push({topic:id,phase:"Re-Diagnose",cycle:state.cycle,ok});if(ok)delete state.weak[id];document.querySelectorAll("button").forEach(b=>b.disabled=true);document.getElementById("fb").innerHTML=`<div class=feedback>Antwort gespeichert.</div><button class=primary onclick="nextRe()">Weiter</button>`;document.querySelector("#fb button").disabled=false}
 function nextRe(){state.reIndex++;renderRe()}
 function reFinish(){
  let still=state.recheck.filter(id=>state.weak[id]);
@@ -165,16 +215,18 @@ function reFinish(){
 }
 function finalScreen(){
  let allSafe=Object.keys(state.weak).length===0;
- app.innerHTML=`<div class=card>${head("Abschlussprofil")}<h2>${allSafe?"Geschafft!":"Dein aktueller Lernstand"}</h2><p>${allSafe?"Du hast die geprüften Bereiche sicher bearbeitet.":"Einige Bereiche solltest du mit einer Lehrkraft oder mit weiterem Material vertiefen."}</p>${profileTable()}<div class=card><h2>Für Lehrende</h2><button onclick="teacher()">Diagnoseprotokoll anzeigen</button><div id=teacher></div></div><button onclick="location.reload()">Neu beginnen</button></div>`;
+ let safe=topics.filter(t=>!state.weak[t.id]).map(t=>t.name),worked=topics.filter(t=>(state.misses[t.id]||0)>0).map(t=>t.name),more=topics.filter(t=>state.weak[t.id]).map(t=>t.name);
+ app.innerHTML=`<div class=card>${head("Abschlussprofil")}<h2>${allSafe?"Geschafft!":"Dein aktueller Lernstand"}</h2><h3>Das kannst du sicher</h3><p>${safe.length?safe.join(" · "):"–"}</p><h3>Daran hast du gearbeitet</h3><p>${worked.length?worked.join(" · "):"Keine zusätzliche Förderung nötig."}</p><h3>Das solltest du weiter üben</h3><p>${more.length?more.join(" · "):"Aktuell kein Bereich."}</p>${profileTable()}<div class=card><h2>Für Lehrende</h2><button onclick="teacher()">Diagnoseprotokoll anzeigen</button><button onclick="window.print()">Profil drucken / als PDF</button><div id=teacher></div></div><button onclick="clearState()">Neu beginnen</button></div>`;
 }
-function teacher(){let rows=state.log.map(x=>`<tr><td>${x.topicName||topics.find(t=>t.id===x.topic)?.name||x.topic}</td><td>${x.phase}</td><td>${x.ok?"sicher/richtig":"auffällig"}</td><td>${x.hint?"Tipp/Hilfe ":""}${x.solution?"Musterlösung":""}</td></tr>`).join("");document.getElementById("teacher").innerHTML=`<p class=muted>Beobachtungen sind diagnostische Hinweise, keine Zuschreibung einer festen Fehlvorstellung.</p><table class=profile><tr><th>Bereich</th><th>Phase</th><th>Beobachtung</th><th>Hilfen</th></tr>${rows}</table>`}
+function teacher(){let rows=state.log.map(x=>`<tr><td>${x.topicName||topics.find(t=>t.id===x.topic)?.name||x.topic}</td><td>${x.phase}</td><td>${x.ok?"sicher/richtig":"auffällig"}</td><td>${x.hint?"Tipp/Hilfe ":""}${x.solution?"Musterlösung":""}</td></tr>`).join("");document.getElementById("teacher").innerHTML=`<p class=muted>Beobachtungen sind diagnostische Hinweise, keine Zuschreibung einer festen Fehlvorstellung.</p><table class=profile><tr><th>Bereich</th><th>Phase</th><th>Beobachtung</th><th>Hilfen</th></tr>${rows}</table><p><b>Interpretation:</b> Förderbedarf wird erst bei wiederholter Auffälligkeit, Unsicherheit oder unzureichender Evidenz gesetzt. Ein einzelner Fehler wird nicht als feste Fehlvorstellung gewertet.</p>`}
 function selfTest(){
  let tests=[
  eqInput("3/5",["0.6"]),eqInput("0,6",["3/5"]),eqInput("0,5",["1/2"]),
- eqInput("2/4",["1/2"]),!eqInput("2/3",["1/2"]),eqInput("8+2x",["2x+8","8+2x"]),
+ eqInput("2/4",["1/2"]),!eqInput("2/3",["1/2"]),eqInput("8+2x",["2x+8"]),eqInput("2*(x+3)",["2x+6"]),!eqInput("2x+5",["2x+6"]),
  norm("x=5")==="5",topics.length===5,topics.every(t=>t.qs.length===6),
- Object.keys(support).length===5,Object.keys(reQ).length===5
+ Object.keys(support).length===5,Object.keys(supportSecond).length===5,Object.keys(reQ).length===5,Object.keys(reQ2).length===5,topics.every(t=>support[t.id].length===2&&supportSecond[t.id].length===2),Object.keys(counterQ).length===5
  ];return tests.every(Boolean)
 }
-if(!selfTest()) app.innerHTML=`<div class=card><h1>Technischer Selbsttest fehlgeschlagen</h1><p>Der Trainer wurde aus Sicherheitsgründen nicht gestartet.</p></div>`; else start();
+const hadSaved=restoreState();
+if(!selfTest()) app.innerHTML=`<div class=card><h1>Technischer Selbsttest fehlgeschlagen</h1><p>Der Trainer wurde aus Sicherheitsgründen nicht gestartet.</p></div>`; else {start(); if(hadSaved && (state.ti>0||state.qi>0||state.phase!=="diagnosis")){let b=document.getElementById("resumeBtn");if(b)b.classList.remove("hidden")}}
 </script></body></html>
